@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:syncfusion_flutter_charts/charts.dart';
+// Ganti import Syncfusion dengan:
+import 'package:fl_chart/fl_chart.dart';
+// atau
+// import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GrafikPage extends StatefulWidget {
