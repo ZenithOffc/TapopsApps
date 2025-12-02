@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// Ganti import Syncfusion dengan:
 import 'package:fl_chart/fl_chart.dart';
-// atau
-// import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GrafikPage extends StatefulWidget {
@@ -307,59 +304,121 @@ class _GrafikPageState extends State<GrafikPage> {
                         ),
                         const SizedBox(height: 20),
                         Expanded(
-                          child: SfCartesianChart(
-                            plotAreaBorderWidth: 0,
-                            primaryXAxis: CategoryAxis(
-                              axisLine: const AxisLine(width: 0),
-                              majorGridLines: const MajorGridLines(width: 0),
-                              labelStyle: const TextStyle(
-                                color: Color(0xFF888888),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            primaryYAxis: NumericAxis(
-                              axisLine: const AxisLine(width: 0),
-                              majorGridLines: MajorGridLines(
-                                color: const Color(0xFF333333).withOpacity(0.5),
-                                width: 1,
-                              ),
-                              labelStyle: const TextStyle(
-                                color: Color(0xFF888888),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            series: <CartesianSeries>[
-                              LineSeries<PerformanceData, String>(
-                                dataSource: _currentData,
-                                xValueMapper: (PerformanceData data, _) => data.period,
-                                yValueMapper: (PerformanceData data, _) => data.value,
-                                color: _currentChartColor,
-                                width: 3,
-                                markerSettings: const MarkerSettings(
-                                  isVisible: true,
-                                  shape: DataMarkerType.circle,
-                                  borderWidth: 2,
-                                  borderColor: Colors.white,
-                                  color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
+                            child: LineChart(
+                              LineChartData(
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawVerticalLine: false,
+                                  horizontalInterval: 50,
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: const Color(0xFF333333).withOpacity(0.5),
+                                      strokeWidth: 1,
+                                    );
+                                  },
                                 ),
-                                dataLabelSettings: const DataLabelSettings(
-                                  isVisible: true,
-                                  textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
+                                titlesData: FlTitlesData(
+                                  show: true,
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 30,
+                                      interval: 1,
+                                      getTitlesWidget: (double value, TitleMeta meta) {
+                                        if (value.toInt() >= 0 && value.toInt() < _currentData.length) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Text(
+                                              _currentData[value.toInt()].period,
+                                              style: const TextStyle(
+                                                color: Color(0xFF888888),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return const Text('');
+                                      },
+                                    ),
+                                  ),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      interval: 50,
+                                      reservedSize: 42,
+                                      getTitlesWidget: (double value, TitleMeta meta) {
+                                        return Text(
+                                          value.toInt().toString(),
+                                          style: const TextStyle(
+                                            color: Color(0xFF888888),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
-                              )
-                            ],
-                            tooltipBehavior: TooltipBehavior(
-                              enable: true,
-                              color: _currentChartColor,
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                                borderData: FlBorderData(
+                                  show: false,
+                                ),
+                                minX: 0,
+                                maxX: (_currentData.length - 1).toDouble(),
+                                minY: 0,
+                                maxY: _getMaxY(),
+                                lineBarsData: [
+                                  LineChartBarData(
+                                    spots: _currentData.asMap().entries.map((entry) {
+                                      return FlSpot(entry.key.toDouble(), entry.value.value);
+                                    }).toList(),
+                                    isCurved: true,
+                                    color: _currentChartColor,
+                                    barWidth: 3,
+                                    isStrokeCapRound: true,
+                                    dotData: FlDotData(
+                                      show: true,
+                                      getDotPainter: (spot, percent, barData, index) {
+                                        return FlDotCirclePainter(
+                                          radius: 6,
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                          strokeColor: _currentChartColor,
+                                        );
+                                      },
+                                    ),
+                                    belowBarData: BarAreaData(
+                                      show: true,
+                                      color: _currentChartColor.withOpacity(0.1),
+                                    ),
+                                  ),
+                                ],
+                                lineTouchData: LineTouchData(
+                                  touchTooltipData: LineTouchTooltipData(
+                                    getTooltipColor: (touchedSpot) => _currentChartColor,
+                                    tooltipRoundedRadius: 8,
+                                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                                      return touchedBarSpots.map((barSpot) {
+                                        return LineTooltipItem(
+                                          '${barSpot.y.toInt()}',
+                                          const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -380,15 +439,25 @@ class _GrafikPageState extends State<GrafikPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem('Total Attack', '${_attackData.last.value.toInt()}', const Color(0xFFFF0040)),
-                _buildStatItem('Active Senders', '${_senderData.last.value.toInt()}', const Color(0xFF00FF88)),
-                _buildStatItem('Users', '${_userData.last.value.toInt()}', const Color(0xFF0088FF)),
+                _buildStatItem('Total Attack', '${_attackData.isNotEmpty ? _attackData.last.value.toInt() : 0}', const Color(0xFFFF0040)),
+                _buildStatItem('Active Senders', '${_senderData.isNotEmpty ? _senderData.last.value.toInt() : 0}', const Color(0xFF00FF88)),
+                _buildStatItem('Users', '${_userData.isNotEmpty ? _userData.last.value.toInt() : 0}', const Color(0xFF0088FF)),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  double _getMaxY() {
+    if (_currentData.isEmpty) return 100;
+    
+    double maxValue = _currentData
+        .map((data) => data.value)
+        .reduce((a, b) => a > b ? a : b);
+    
+    return (maxValue * 1.2).ceilToDouble();
   }
 
   Widget _buildTimeRangeButton(String value, String label) {
